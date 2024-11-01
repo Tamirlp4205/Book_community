@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { AppContext } from "@/app/context/appContext";
 import Image from "next/image";
 import { db } from "@/config/firebase";
@@ -17,7 +17,7 @@ import { useContext, useEffect, useState, useRef } from "react";
 interface Message {
   sId: string;
   text: string;
-  createdAt: Date; // You can change this to a timestamp type if needed
+  createdAt: Date | { seconds: number }; // Allow either a Date or Firestore Timestamp
 }
 
 interface ChatItem {
@@ -34,9 +34,20 @@ const ChatBox = () => {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const formatTimestamp = (timestamp: { seconds: number }) => {
+  const formatTimestamp = (timestamp: Date | { seconds: number }) => {
     if (!timestamp) return "";
-    const date = new Date(timestamp.seconds * 1000);
+
+    let date: Date;
+
+    if (timestamp instanceof Date) {
+      date = timestamp; // Already a Date object
+    } else if (timestamp.seconds !== undefined) {
+      date = new Date(timestamp.seconds * 1000); // Firestore Timestamp
+    } else {
+      console.warn("Invalid timestamp format:", timestamp);
+      return "";
+    }
+
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
@@ -66,7 +77,7 @@ const ChatBox = () => {
           messages: arrayUnion({
             sId: userData.uid,
             text: newMessage.trim(),
-            createdAt: new Date(),
+            createdAt: new Date(), // Store as a Date
           }),
         });
 
@@ -78,16 +89,21 @@ const ChatBox = () => {
           if (userChatsSnapShot.exists()) {
             const userChatData = userChatsSnapShot.data();
             const chatData = userChatData.chatData as ChatItem[];
-            const chatIndex = chatData.findIndex((c) => c.messageId === messagesId);
-            if (chatIndex !== -1) {
-              chatData[chatIndex].lastMessage = newMessage.slice(0, 30);
-              chatData[chatIndex].updatedAt = Date.now();
-              if (chatData[chatIndex].rId === userData.id) {
-                chatData[chatIndex].messageSeen = false;
+
+            if (Array.isArray(chatData)) {
+              const chatIndex = chatData.findIndex((c) => c.messageId === messagesId);
+              if (chatIndex !== -1) {
+                chatData[chatIndex].lastMessage = newMessage.slice(0, 30);
+                chatData[chatIndex].updatedAt = Date.now();
+                if (chatData[chatIndex].rId === userData.id) {
+                  chatData[chatIndex].messageSeen = false;
+                }
+                await updateDoc(userChatRef, { chatData: chatData });
+              } else {
+                console.warn("Chat not found in chatData");
               }
-              await updateDoc(userChatRef, {
-                chatData: chatData,
-              });
+            } else {
+              console.error("chatData is not an array:", chatData);
             }
           }
         }
@@ -99,7 +115,7 @@ const ChatBox = () => {
   };
 
   return (
-    <div className="w-3/4 h-full flex flex-col bg-gray-50 p-8 ">
+    <div className="w-3/4 h-full flex flex-col bg-gray-50 p-8">
       {chatUser && chatUser.userData ? (
         <div className="flex items-center mb-4">
           <Image
@@ -119,24 +135,24 @@ const ChatBox = () => {
         </p>
       )}
 
-<div className="flex-1 overflow-y-auto p-2 space-y-3">
-  {messages.map((msg: Message, index: number) => (  // Specify the type for index here
-    <div
-      key={index}
-      className={`p-2 rounded-md ${
-        msg.sId === userData.uid
-          ? "bg-blue-500 text-white ml-auto"
-          : "bg-gray-300 text-black mr-auto"
-      } max-w-xs`}
-    >
-      {msg.text}
-      <div className="text-xs text-gray-500 mt-1 text-right">
-      {msg.createdAt && formatTimestamp({ seconds: Math.floor(msg.createdAt.getTime() / 1000) })}
+      <div className="flex-1 overflow-y-auto p-2 space-y-3">
+        {messages.map((msg: Message, index: number) => (
+          <div
+            key={index}
+            className={`p-2 rounded-md ${
+              msg.sId === userData.uid
+                ? "bg-blue-500 text-white ml-auto"
+                : "bg-gray-300 text-black mr-auto"
+            } max-w-xs`}
+          >
+            {msg.text}
+            <div className="text-xs text-gray-500 mt-1 text-right">
+              {msg.createdAt && formatTimestamp(msg.createdAt)}
+            </div>
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
       </div>
-    </div>
-  ))}
-  <div ref={messagesEndRef} />
-</div>
 
       <div className="mt-4 flex items-center">
         <Input

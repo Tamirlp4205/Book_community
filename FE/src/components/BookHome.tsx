@@ -62,10 +62,10 @@ export const BookHome = () => {
             <div className="grid grid-cols-3 gap-4 mt-2">
               {groupedBooks[type].map((book) => (
                 <div key={book.id} className="border p-4 rounded">
-                  <h2>{book.username}</h2>
-                  <h3 className="font-semibold">{book.name}</h3>
+                  <h2>{book.username.toLocaleUpperCase()}</h2>
+                  <h3 className="font-semibold">{book.name.toLocaleUpperCase()}</h3>
                   <p className="text-sm text-gray-600">Зохиолч: {book.author}</p>
-                  {book.bookImg && <img src={book.bookImg} alt={book.name} className="mt-2 w-full h-auto" />}
+                  {book.bookImg && <Image src={book.bookImg} alt={book.name} width={600} height={400}  />}
                   <p className="text-xs text-gray-500 mt-2">Үүсгэсэн огноо: {book.createdAt.toLocaleString()}</p>
                 </div>
               ))}

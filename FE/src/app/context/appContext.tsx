@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { createContext, useState, FC, ReactNode, useEffect } from 'react';
 import { db } from '@/config/firebase';
@@ -26,9 +27,16 @@ interface AppContextType {
   chatData: Chat[]; 
   setChatData: (data: Chat[]) => void; 
   loadUserData: (uid: string) => void;
+  messages: { id: string; text: string; timestamp: number }[];
+  setMessages: (messages: { id: string; text: string; timestamp: number }[]) => void;
+  messagesId: any;
+  setMessagesId: (id: any) => void; 
+  chatUser: any; 
+  setChatUser: (user: any) => void; 
 }
 
-export const AppContext = createContext<AppContextType | null>(null);
+
+export const AppContext = createContext<AppContextType | any>(null);
 
 interface AppContextProviderProps {
   children: ReactNode;
@@ -37,8 +45,8 @@ interface AppContextProviderProps {
 export const AppContextProvider: FC<AppContextProviderProps> = ({ children }) => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [chatData, setChatData] = useState<Chat[]>([]); 
-  const [messagesId ,setMessagesId] = useState(null);
-  const [messages , setMessages] = useState([]);
+  const [messagesId, setMessagesId] = useState<string | null>(null); 
+  const [messages, setMessages] = useState<{ id: string; text: string; timestamp: number }[]>([]);
   const [chatUser,setChatUser] = useState (null)
 
   const loadUserData = async (uid: string) => {
@@ -80,11 +88,12 @@ useEffect(() => {
 
     const unSub = onSnapshot(chatRef, async (res) => {
       const chatItems = res.data()?.chatData || []; 
+      console.log(chatItems)
 
       const tempData: Chat[] = [];
 
       await Promise.all(
-        chatItems.map(async (item) => {
+        chatItems.map(async (item : any) => {
 
           const userRef = doc(db, "users", item.rId);
           const userSnap = await getDoc(userRef);
@@ -112,10 +121,9 @@ useEffect(() => {
     chatData,
     setChatData,
     loadUserData,
-    messages,setMessages,
+    messages,setMessages ,
     messagesId,setMessagesId,
     chatUser,setChatUser
-
   };
 
   return (

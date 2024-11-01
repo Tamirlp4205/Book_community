@@ -2,7 +2,7 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <div className="flex flex-col text-white bg-[#050038] w-full h-[400px] m-auto p-6">
+    <div className="flex flex-col text-white bg-white w-full h-[400px] m-auto p-6">
       <div className="w-[1440px] m-auto flex flex-col gap-[80px]">
         <nav className="flex justify-between text-black">
           <p>Нүүр</p>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import {
   arrayUnion,
@@ -27,7 +28,10 @@ interface ChatData {
   userData?: UserData;
   messageId?: string;
   updatedAt: number;
+  messageSeen?: boolean; // If you have this property, include it as well
+  lastMessage?: string; // Add this line
 }
+
 
 interface FetchedUser {
   id: string;
@@ -41,37 +45,35 @@ const LeftSideBar = () => {
   const [user, setUser] = useState<FetchedUser | null>(null);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [showGroupDialog, setShowGroupDialog] = useState(false);
 
 
   const inputHandler = async (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.trim().toLowerCase();
-
+  
     if (!userData?.uid) {
       console.error("User data is not available.");
       return;
     }
-
+  
     if (input) {
       setShowSearch(true);
       setLoading(true);
-
+  
       try {
         const userRef = collection(db, "users");
         const q = query(userRef, where("username", "==", input));
         const querySnap = await getDocs(q);
-
+  
         if (!querySnap.empty && querySnap.docs[0].id !== userData.uid) {
           const docSnapshot = querySnap.docs[0];
           const fetchedUser = {
             id: docSnapshot.id,
             ...docSnapshot.data(),
           } as FetchedUser;
-
-          const userExists = chatData.some(
-            (chat) => chat.rId === fetchedUser.id
-          );
-
+  
+          // Type the chat parameter here
+          const userExists = chatData.some((chat: ChatData) => chat.rId === fetchedUser.id);
+  
           setUser(userExists ? null : fetchedUser);
         } else {
           setUser(null);
@@ -86,34 +88,34 @@ const LeftSideBar = () => {
       setUser(null);
     }
   };
-
+  
   const addChat = async () => {
     if (!user || !userData || !user.id || !userData.uid) {
       console.error("Invalid user or userData.");
       return;
     }
-
-    const chatExists = chatData.some((chat) => chat.rId === user.id);
+  
+    const chatExists = chatData.some((chat: ChatData) => chat.rId === user.id);
     if (chatExists) return;
-
+  
     const messagesRef = collection(db, "messages");
     const chatsRef = collection(db, "chats");
-
+  
     try {
       const newMessagesRef = doc(messagesRef);
       await setDoc(newMessagesRef, {
         createdAt: serverTimestamp(),
         messages: [],
       });
-
-      const newChatData = {
+  
+      const newChatData: ChatData = {
         messageId: newMessagesRef.id,
-        lastMessage: "",
+        lastMessage: "", 
         rId: userData.uid,
         updatedAt: Date.now(),
         messageSeen: true,
       };
-
+  
       await updateDoc(doc(chatsRef, user.id), {
         chatData: arrayUnion(newChatData),
       });
@@ -124,6 +126,8 @@ const LeftSideBar = () => {
       console.error("Error adding chat:", error);
     }
   };
+  
+  
 
   const setChat = (item: ChatData) => {
     setMessagesId(item.messageId);
@@ -169,7 +173,7 @@ const LeftSideBar = () => {
       )}
       {chatData.length > 0 ? (
         <div className="mt-4 space-y-4">
-          {chatData.map((item, index) => (
+          {chatData.map((item : any, index : any) => (
             <div
               key={index}
 

@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import { AppContext } from "@/app/context/appContext";
 import Image from "next/image";
 import { db } from "@/config/firebase";
@@ -13,14 +13,28 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useContext, useEffect, useState, useRef } from "react";
 
+// Define types for Message and ChatItem
+interface Message {
+  sId: string;
+  text: string;
+  createdAt: Date; // You can change this to a timestamp type if needed
+}
+
+interface ChatItem {
+  messageId: string;
+  lastMessage: string;
+  updatedAt: number;
+  rId: string;
+  messageSeen?: boolean;
+}
 
 const ChatBox = () => {
   const { userData, setMessages, messages, chatUser, messagesId } =
     useContext(AppContext);
   const [newMessage, setNewMessage] = useState("");
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const formatTimestamp = (timestamp) => {
+  const formatTimestamp = (timestamp: { seconds: number }) => {
     if (!timestamp) return "";
     const date = new Date(timestamp.seconds * 1000);
     return date.toLocaleTimeString("en-US", {
@@ -63,26 +77,21 @@ const ChatBox = () => {
 
           if (userChatsSnapShot.exists()) {
             const userChatData = userChatsSnapShot.data();
-            const chatIndex = userChatData.chatData.findIndexOf(
-              (c) => c.messageId === messagesId
-            );
+            const chatData = userChatData.chatData as ChatItem[];
+            const chatIndex = chatData.findIndex((c) => c.messageId === messagesId);
             if (chatIndex !== -1) {
-              userChatData.chatData[chatIndex].lastMessage = newMessage.slice(
-                0,
-                30
-              );
-              userChatData.chatData[chatIndex].updatedAt = Date.now();
-              if (userChatData.chatData[chatIndex].rId === userData.id) {
-                userChatData.chatData[chatIndex].messageSeen = false;
+              chatData[chatIndex].lastMessage = newMessage.slice(0, 30);
+              chatData[chatIndex].updatedAt = Date.now();
+              if (chatData[chatIndex].rId === userData.id) {
+                chatData[chatIndex].messageSeen = false;
               }
               await updateDoc(userChatRef, {
-                chatData: userChatData.chatData,
+                chatData: chatData,
               });
             }
           }
         }
         setNewMessage("");
-        console.log(newMessage);
       } catch (error) {
         console.error("Error sending message:", error);
       }
@@ -90,9 +99,7 @@ const ChatBox = () => {
   };
 
   return (
-
     <div className="w-3/4 h-full flex flex-col bg-gray-50 p-8 ">
-
       {chatUser && chatUser.userData ? (
         <div className="flex items-center mb-4">
           <Image
@@ -112,24 +119,24 @@ const ChatBox = () => {
         </p>
       )}
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-3">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`p-2 rounded-md ${
-              msg.sId === userData.uid
-                ? "bg-blue-500 text-white ml-auto"
-                : "bg-gray-300 text-black mr-auto"
-            } max-w-xs`}
-          >
-            {msg.text}
-            <div className="text-xs text-gray-500 mt-1 text-right">
-              {formatTimestamp(msg.createdAt)}
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+<div className="flex-1 overflow-y-auto p-2 space-y-3">
+  {messages.map((msg: Message, index: number) => (  // Specify the type for index here
+    <div
+      key={index}
+      className={`p-2 rounded-md ${
+        msg.sId === userData.uid
+          ? "bg-blue-500 text-white ml-auto"
+          : "bg-gray-300 text-black mr-auto"
+      } max-w-xs`}
+    >
+      {msg.text}
+      <div className="text-xs text-gray-500 mt-1 text-right">
+      {msg.createdAt && formatTimestamp({ seconds: Math.floor(msg.createdAt.getTime() / 1000) })}
       </div>
+    </div>
+  ))}
+  <div ref={messagesEndRef} />
+</div>
 
       <div className="mt-4 flex items-center">
         <Input

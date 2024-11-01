@@ -14,7 +14,7 @@ import { Button } from "../ui/button";
 import { PlusCircle } from "lucide-react";
 import { Textarea } from "../ui/textarea";
 import { useRef, useState, useContext } from "react";
-import { upload } from "../../app/upload/route";
+import { upload } from "../../app/upload/upload";
 import { db } from "@/config/firebase";
 import { addDoc, collection } from "firebase/firestore";
 import { toast } from "react-toastify";
@@ -53,6 +53,7 @@ export const AddBookForm = () => {
 
       await addDoc(collection(db, "books"), bookData);
       setOpen(false);
+      location.reload()
       toast.success("Book created successfully.");
     } catch (error) {
       console.error("Error adding book:", error);
@@ -65,7 +66,7 @@ export const AddBookForm = () => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="flex gap-2 text-primary-foreground bg-primary">
+        <Button className="flex gap-2 text-primary-foreground bg-primary bg-blue-600 w-40 flex justify-end ">
           <PlusCircle size={16} />
           <span className="font-medium">Add new book</span>
         </Button>
@@ -138,16 +139,6 @@ export const AddBookForm = () => {
                 className="col-span-3"
                 required
               />
-
-              {avatar && (
-                <div className="mt-2">
-                  <img
-                    src={URL.createObjectURL(avatar)}
-                    alt="Uploaded Preview"
-                    className="w-full h-auto"
-                  />
-                </div>
-              )}
             </div>
           </div>
           <DialogFooter>

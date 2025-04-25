@@ -28,8 +28,8 @@ interface ChatData {
   userData?: UserData;
   messageId?: string;
   updatedAt: number;
-  messageSeen?: boolean; // If you have this property, include it as well
-  lastMessage?: string; // Add this line
+  messageSeen?: boolean; 
+  lastMessage?: string; 
 }
 
 

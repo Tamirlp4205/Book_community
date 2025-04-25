@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import Image from "next/image";
-import Picture from "@/assets/image-1.png";
 import { login } from "@/config/auth";
 
 const Login = () => {
@@ -20,7 +18,7 @@ const Login = () => {
     e.preventDefault();
     try {
         await login(email, password);
-      router.push("/");
+      router.push("/chat");
     } catch (err) {
       const firebaseError = err as AuthError;
       const formattedErrorMessage = firebaseError.message
@@ -79,12 +77,7 @@ const Login = () => {
             </p>
           </div>
         </div>
-        <Image
-          src={Picture}
-          width={720}
-          height={730}
-          alt="Picture of the author"
-        />
+        
       </div>
     </div>
   );

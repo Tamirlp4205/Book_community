@@ -1,7 +1,6 @@
 import ChatBox from "@/components/ChatBox";
 import LeftSideBar from "@/components/LeftSideBar";
 import { Navbar } from "@/components/Navbar";
-// import RightSideBar from "@/components/RightSideBar";
 import AppContextProvider from "../context/appContext";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -13,7 +12,6 @@ const Chat = () => {
         <div className="flex w-full h-full">
           <LeftSideBar />
           <ChatBox />
-          {/* <RightSideBar /> */}
         </div>
       </div>
     </AppContextProvider>

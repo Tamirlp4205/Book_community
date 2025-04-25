@@ -112,7 +112,6 @@ const Profile = () => {
             />
           </div>
 
-          {/* Bio Input */}
           <div className="flex flex-col gap-2 w-full">
             <label className="block text-sm font-medium text-gray-700">Bio</label>
             <Textarea value={bio} onChange={(e) => setBio(e.target.value)} />

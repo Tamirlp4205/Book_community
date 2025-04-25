@@ -13,11 +13,10 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useContext, useEffect, useState, useRef } from "react";
 
-// Define types for Message and ChatItem
 interface Message {
   sId: string;
   text: string;
-  createdAt: Date | { seconds: number }; // Allow either a Date or Firestore Timestamp
+  createdAt: Date | { seconds: number };
 }
 
 interface ChatItem {
@@ -29,20 +28,18 @@ interface ChatItem {
 }
 
 const ChatBox = () => {
-  const { userData, setMessages, messages, chatUser, messagesId } =
-    useContext(AppContext);
+  const { userData, setMessages, messages, chatUser, messagesId } = useContext(AppContext);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const formatTimestamp = (timestamp: Date | { seconds: number }) => {
     if (!timestamp) return "";
-
     let date: Date;
 
     if (timestamp instanceof Date) {
-      date = timestamp; // Already a Date object
+      date = timestamp;
     } else if (timestamp.seconds !== undefined) {
-      date = new Date(timestamp.seconds * 1000); // Firestore Timestamp
+      date = new Date(timestamp.seconds * 1000);
     } else {
       console.warn("Invalid timestamp format:", timestamp);
       return "";
@@ -71,46 +68,48 @@ const ChatBox = () => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (newMessage.trim() && messagesId) {
-      try {
-        await updateDoc(doc(db, "messages", messagesId), {
-          messages: arrayUnion({
-            sId: userData.uid,
-            text: newMessage.trim(),
-            createdAt: new Date(), // Store as a Date
-          }),
-        });
+    const messageText = newMessage.trim();
+    if (!messageText || !messagesId) return;
 
-        const userIDs = [chatUser.rId, userData.id];
-        for (const id of userIDs) {
-          const userChatRef = doc(db, "chats", id);
-          const userChatsSnapShot = await getDoc(userChatRef);
+    setNewMessage(""); 
 
-          if (userChatsSnapShot.exists()) {
-            const userChatData = userChatsSnapShot.data();
-            const chatData = userChatData.chatData as ChatItem[];
+    try {
+      await updateDoc(doc(db, "messages", messagesId), {
+        messages: arrayUnion({
+          sId: userData.uid,
+          text: messageText,
+          createdAt: new Date(),
+        }),
+      });
 
-            if (Array.isArray(chatData)) {
-              const chatIndex = chatData.findIndex((c) => c.messageId === messagesId);
-              if (chatIndex !== -1) {
-                chatData[chatIndex].lastMessage = newMessage.slice(0, 30);
-                chatData[chatIndex].updatedAt = Date.now();
-                if (chatData[chatIndex].rId === userData.id) {
-                  chatData[chatIndex].messageSeen = false;
-                }
-                await updateDoc(userChatRef, { chatData: chatData });
-              } else {
-                console.warn("Chat not found in chatData");
+      const userIDs = [chatUser.rId, userData.id];
+      for (const id of userIDs) {
+        const userChatRef = doc(db, "chats", id);
+        const userChatsSnapShot = await getDoc(userChatRef);
+
+        if (userChatsSnapShot.exists()) {
+          const userChatData = userChatsSnapShot.data();
+          const chatData = userChatData.chatData as ChatItem[];
+
+          if (Array.isArray(chatData)) {
+            const chatIndex = chatData.findIndex((c) => c.messageId === messagesId);
+            if (chatIndex !== -1) {
+              chatData[chatIndex].lastMessage = messageText.slice(0, 30);
+              chatData[chatIndex].updatedAt = Date.now();
+              if (chatData[chatIndex].rId === userData.id) {
+                chatData[chatIndex].messageSeen = false;
               }
+              await updateDoc(userChatRef, { chatData });
             } else {
-              console.error("chatData is not an array:", chatData);
+              console.warn("Chat not found in chatData");
             }
+          } else {
+            console.error("chatData is not an array:", chatData);
           }
         }
-        setNewMessage("");
-      } catch (error) {
-        console.error("Error sending message:", error);
       }
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
   };
 

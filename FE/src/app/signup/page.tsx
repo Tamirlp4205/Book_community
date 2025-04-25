@@ -1,8 +1,6 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import Image from "next/image";
-import Picture from "@/assets/image-1.png";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState, FormEvent } from "react";
@@ -37,12 +35,7 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-[1440px] mx-auto flex mt-[20px] justify-between">
-        <Image
-          src={Picture}
-          width={720}
-          height={730}
-          alt="Signup Image"
-        />
+
         <div className="w-[538px] flex flex-col gap-[40px]">
           <h1 className="font-bold text-[56px]">Тавтай морил</h1>
           <form onSubmit={handleSignup} className="flex flex-col gap-5">

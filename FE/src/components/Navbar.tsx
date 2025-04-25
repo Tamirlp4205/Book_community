@@ -1,7 +1,6 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
-import { Logo } from "../assets/Logo";
 import { auth } from "@/config/firebase";
 import { logOut } from "@/config/auth";
 import { useRouter } from "next/navigation";
@@ -48,11 +47,7 @@ export const Navbar = () => {
     <div className="bg-white w-full p-4 border-b-2">
       <div className="flex m-auto max-w-[1440px] justify-between items-center gap-20 max-h-[74px]">
         <div className="flex gap-8 items-center">
-          <Logo />
-          <div className="flex gap-10">
-            <Link href="/">Нүүр</Link>
-            <Link href="/library">Номын сан</Link>
-          </div>
+         
         </div>
         <div className="flex items-center gap-5">
           {isLoggedIn ? (

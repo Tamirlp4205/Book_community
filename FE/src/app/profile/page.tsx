@@ -50,7 +50,7 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
-    if (!prevImage && !avatar) {
+    if (prevImage && avatar) {
       toast.error("Please upload an image");
       return;
     }
